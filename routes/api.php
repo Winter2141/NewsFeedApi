@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserSettingController;
+use App\Http\Controllers\ArticleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,13 +22,22 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::controller(AuthController::class)->group(function () {
+Route::controller(AuthController::class)->prefix("auth")->group(function () {
     Route::post('login', 'login');
     Route::post('register', 'register');
     Route::post('logout', 'logout');
     Route::post('refresh', 'refresh');
 });
-
-Route::group(['middleware' => 'user', 'prefix' => 'user', 'as' => 'user.'], function () {
-    Route::get('settings', 'UserController@settings')->name('settings');
+Route::controller(UserSettingController::class)->prefix("user-settings")->group(function () {
+    Route::get('/', 'index');
+    Route::put('/update/{userSetting}', 'update');
+    Route::post('/create', 'create');
+});
+Route::controller(ArticleController::class)->prefix("article")->group(function () {
+    Route::post('/search', 'search');
+    Route::post('/increase-view/{article}', 'increaseView');
+    Route::get('/countries', 'getCountries');
+    Route::get('/languages', 'getLanguages');
+    Route::get('/categories', 'getCategories');
+    Route::get('/sources', 'getSources');
 });

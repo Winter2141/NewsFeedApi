@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Http\Requests\AuthLoginRequest;
+use App\Http\Requests\AuthRegisterRequest;
+use App\Services\Interfaces\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -8,18 +11,16 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    private $userService;
 
-    public function __construct()
+    public function __construct(UserService $userService)
     {
+        $this->userService = $userService;
         $this->middleware('auth:api', ['except' => ['login','register']]);
     }
 
-    public function login(Request $request)
+    public function login(AuthLoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
         $credentials = $request->only('email', 'password');
 
         $token = Auth::attempt($credentials);
@@ -42,14 +43,15 @@ class AuthController extends Controller
 
     }
 
-    public function register(Request $request){
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-        ]);
+    public function register(AuthRegisterRequest $request){
+//
+//        $user = User::create([
+//            'name' => $request->name,
+//            'email' => $request->email,
+//            'password' => Hash::make($request->password),
+//        ]);
 
-        $user = User::create([
+        $user = $this->userService->createUser([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
