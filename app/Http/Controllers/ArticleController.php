@@ -44,10 +44,16 @@ class ArticleController extends Controller
 
     public function getSources(Request $request)
     {
-        $userSetting = $this->userService->getSettingByUserId(Auth::user()->id);
-        $sources = $this->newsapi->getSources($request->get('category'), 'en', $request->get('country', $userSetting->country));
 
-        return response()->json($sources->sources);
+        $userSetting = $this->userService->getSettingByUserId(Auth::user()->id);
+        $country = $request->get('country', $userSetting->country);
+        if($request->get('is_own')) {
+            $sources = explode(",", $userSetting->sources);
+        } else {
+            $sources = ($this->newsapi->getSources($request->get('category'), 'en', $country ? $country : 'us'))->sources;
+        }
+
+        return response()->json($sources);
     }
 
     public function getCategories(Request $request)
@@ -55,7 +61,7 @@ class ArticleController extends Controller
         $categories = $this->newsapi->getCategories();
         if(Auth::hasUser()) {
             $userSetting = $this->userService->getSettingByUserId(Auth::user()->id);
-            if(isset($userSetting->categories) && $userSetting->categories && $request->has('is_own') && $request->get('is_own')) {
+            if(isset($userSetting->categories) && $userSetting->categories && $request->get('is_own')) {
                 $categories = explode(",", $userSetting->categories);
             }
         }
